@@ -1731,6 +1731,51 @@ class MusicBot(discord.Client):
         await self.send_message(author, '\n'.join(lines))
         return Response(":mailbox_with_mail:", delete_after=20)
 
+    async def cmd_pos(self, player, before, after):
+        """
+        Usage:
+            {command_prefix}pos [position in queue] [position in queue]
+
+        Changes a song's position in queue
+        """
+
+        if player.is_stopped:
+            raise exceptions.CommandError("Can't modify the queue! The player is not playing!", expire_in=20)
+
+        length = len(player.playlist.entries)
+
+        if length < 2:
+            raise exceptions.CommandError("Can't change position! Please add at least 2 songs to the queue!", expire_in=20)
+
+        try:
+            before = int(before)
+            after = int(after)
+
+            if max(abs(before), abs(after)) > length or min(abs(before), abs(after)) == 0:
+                 raise ValueError
+        except ValueError:
+            raise exceptions.CommandError("This is not a valid position! Please choose a song "
+                "number between -{0} and {0}".format(length), expire_in=20)
+
+        before += length if before < 0 else -1
+        after += length if after < 0 else -1
+
+        entry = player.playlist.change_position(before, after)
+
+        try:
+            time_until = await player.playlist.estimate_time_until(after + 1, player)
+        except:
+            traceback.print_exc()
+            time_until = ''
+
+        return Response(
+            'changed position of **{0.title}** to {1} - '
+            'estimated time until playing: {2}'.format(
+                 entry,
+                 after + 1,
+                 time_until),
+            reply=True,
+            delete_after=20)
 
     @owner_only
     async def cmd_setname(self, leftover_args, name):

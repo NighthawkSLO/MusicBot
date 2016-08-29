@@ -225,6 +225,15 @@ class Playlist(EventEmitter):
         if self.peek() is entry:
             entry.get_ready_future()
 
+    def change_position(self, before, after):
+        self.entries.rotate(-before)
+        entry = self.entries.popleft()
+        self.entries.rotate(before)
+        self.entries.insert(after, entry)
+        self.emit('entry-added', playlist=self, entry=entry)
+        entry.get_ready_future()
+        return entry
+
     async def get_next_entry(self, predownload_next=True):
         """
             A coroutine which will return the next song or None if no songs left to play.
