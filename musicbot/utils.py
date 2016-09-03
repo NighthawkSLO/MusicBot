@@ -5,6 +5,7 @@ import unicodedata
 
 from hashlib import md5
 from .constants import DISCORD_MSG_CHAR_LIMIT
+from random import shuffle
 
 
 def load_file(filename, skip_commented_lines=True, comment_char='#'):
@@ -29,6 +30,15 @@ def write_file(filename, contents):
         for item in contents:
             f.write(str(item))
             f.write('\n')
+
+
+def uniquerandomlist(listname):
+    l = []
+    while True:
+        if len(l) == 0:
+            l = listname[:]
+            shuffle(l)
+        yield l.pop()
 
 
 def slugify(value):
